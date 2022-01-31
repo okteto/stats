@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"	
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -80,15 +80,20 @@ func init() {
 	prometheus.MustRegister(clientInFlightGauge, clientCounter, dnsLatencyVec, tlsLatencyVec, histVec)
 }
 
-// RoundTripper provides a transport for an http client that outputs prometheus stats.
+// RoundTripper provides a transport for an http client that outputs prometheus
+// stats.
 func RoundTripper() http.RoundTripper {
+	return RoundTripperFrom(http.DefaultTransport)
+}
+
+// RoundTripperFrom extends an existing transport that can be used for an http
+// client that outputs prometheus stats.
+func RoundTripperFrom(rt http.RoundTripper) http.RoundTripper {
 	return promhttp.InstrumentRoundTripperInFlight(clientInFlightGauge,
 		promhttp.InstrumentRoundTripperCounter(clientCounter,
 			promhttp.InstrumentRoundTripperTrace(trace,
-				promhttp.InstrumentRoundTripperDuration(histVec, http.DefaultTransport),
+				promhttp.InstrumentRoundTripperDuration(histVec, rt),
 			),
 		),
 	)
 }
-
-

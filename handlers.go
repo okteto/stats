@@ -48,3 +48,11 @@ func WrapHTTPHandler(name string, h http.Handler) http.Handler {
 		),
 	)
 }
+
+// CreateMiddleware returns a standard instrumented http middleware. The name
+// will be set as the "handler" label
+func CreateMiddleware(name string) func(http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		return WrapHTTPHandler(name, h)
+	}
+}

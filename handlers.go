@@ -43,8 +43,8 @@ func init() {
 // WrapHTTPHandler wraps an http handler with the default http statistics implementation.
 func WrapHTTPHandler(name string, h http.Handler) http.Handler {
 	return promhttp.InstrumentHandlerInFlight(httpInFlightGauge,
-		promhttp.InstrumentHandlerDuration(httpDuration.MustCurryWith(prometheus.Labels{"handler": name}),
-			promhttp.InstrumentHandlerCounter(httpCounter.MustCurryWith(prometheus.Labels{"handler": name}), h),
+		promhttp.InstrumentHandlerDuration(httpDuration.MustCurryWith(prometheus.Labels{"uri": name}),
+			promhttp.InstrumentHandlerCounter(httpCounter.MustCurryWith(prometheus.Labels{"uri": name}), h),
 		),
 	)
 }

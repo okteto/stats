@@ -18,7 +18,7 @@ var (
 			Name: "client_requests_total",
 			Help: "A counter for requests from the wrapped client.",
 		},
-		[]string{"code", "method"},
+		[]string{"code", "method", "initiator"},
 	)
 
 	// dnsLatencyVec uses custom buckets based on expected dns durations.
@@ -81,16 +81,17 @@ func init() {
 }
 
 // RoundTripper provides a transport for an http client that outputs prometheus
-// stats.
-func RoundTripper() http.RoundTripper {
-	return RoundTripperFrom(http.DefaultTransport)
+// stats. It takes a initiator label to be able to distinguish the client
+func RoundTripper(initiator string) http.RoundTripper {
+	return RoundTripperFrom(initiator, http.DefaultTransport)
 }
 
 // RoundTripperFrom extends an existing transport that can be used for an http
 // client that outputs prometheus stats.
-func RoundTripperFrom(rt http.RoundTripper) http.RoundTripper {
+// It takes a initiator label to be able to distinguish the client
+func RoundTripperFrom(initiator string, rt http.RoundTripper) http.RoundTripper {
 	return promhttp.InstrumentRoundTripperInFlight(clientInFlightGauge,
-		promhttp.InstrumentRoundTripperCounter(clientCounter,
+		promhttp.InstrumentRoundTripperCounter(clientCounter.MustCurryWith(prometheus.Labels{"initiator": initiator}),
 			promhttp.InstrumentRoundTripperTrace(trace,
 				promhttp.InstrumentRoundTripperDuration(histVec, rt),
 			),
